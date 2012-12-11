@@ -1,41 +1,59 @@
-# hi Redis ORM
+# Mixin
 
-## Easily store complex javascript objects to redis
-Store and retrieve a graph of inter-dependent objects to redis.
+## Makes it easy to define mixins that can be added to your classes
 
-## Status
-Initial commit: this is an 'empty' repo at the moment!
-
-Specs are in progress.
-
+## Status: Complete
 
 ## Installation
 
-    [not published]
+    npm install hi-mixin
 
 ## Usage
 
-### Make sure redis is running:
+### To define a mixin:
+    class ModelBase extends Mixin
+      @addTheseToClass: # this (@) refers to the class
+        pi: 3.14
 
-The lib defaults to using redis running on localhost
+      @addTheseToInstance:
+        atts: {}
+        legs: 4
+        get: (field)-> @atts[field]
+        set: (field, val)-> @atts[field] = val
+    global.ModelBase = ModelBase # optional
 
-### Open a terminal windows and fire up node:
-    $ node
-    Animal = require ('Animal')
+### define a mixin that includes another mixin
 
-    donatello = new Animal({'name': 'Donatallo', type:'turtle', mutant:true})
-    donatello.save()
 
-    raphael   = new Animal({'name': 'Raphael', type:'turtle', mutant:true})
-    raphael.save()
+### To define a mixin that includes another mixin:
+    class ORM extends Mixin
+      @include ModelBase    
 
-    sensei    = new Animal({'name': 'Splinter',  type:'rat', mutant:false}))
-    sensei.save()
+      @addTheseToClass: # this (@) refers to the class
+        storage: {}
+        count: ()-> @findAll().length
+        find: (id)-> @storage[id]
+        findAll: ()-> val for own key, val of @storage    
 
-    donatello.setMaster(sensei)
-    raphael.setMaster(sensei)
+    global.ORM = ORM
 
-    sensei.students() // returns: [donatello, raphael]
+
+### To extend a class with a mixin:
+    global.Animal = class Animal
+      ORM.mixinTo @
+
+      # can now use get and set methods that were mixed in from ModelBase
+      constructor: (@id)->
+      type: ()-> @get('type')
+      name: ()-> @get('name')             
+      setName: (n)-> @set('name', n)
+
+### To use your class:
+    lion = new Animal('cat')
+    lion.setName('meowie')
+    lion.save()
+    console.log Animal.count()
+    lion.destroy()
 
 ## Contributing
 
