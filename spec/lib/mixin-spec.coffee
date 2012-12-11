@@ -3,15 +3,25 @@
 ###
 
 global.ModelBase = class ModelBase extends Mixin
-  @addTheseToInstance =  # this (@) refers to the instance
+  @addTheseToClass:
+    topClassAtt: {data: 'Top Class Att'}
+    topClassMethod: ()-> 'Top Class Method'
+
+  @addTheseToInstance:  # this (@) refers to the instance
+    topInstanceAtt: {data:'Top Instance Att'}
+    topInstanceMethod: ()-> 'Top Instance Method'
     legs: 4
     atts: {}
     get: (field)-> @atts[field]
     set: (field, val)-> @atts[field] = val
+
 global.ORM = class ORM extends Mixin
-  @addTheseToClass = # this (@) refers to the class
+  @include ModelBase
+
+  @addTheseToClass: # this (@) refers to the class
+    bottomClassAtt: {data:'Bottom Class Att'}
+    bottomClassMethod: ()-> 'Bottom Class Method'
     storage: {}
-    someData: {init:'init'}
     count: ()-> @findAll().length
     find: (id)-> @storage[id]
     findAll: ()-> val for own key, val of @storage
@@ -23,6 +33,8 @@ global.ORM = class ORM extends Mixin
       obj
 
   @addTheseToInstance:  # this (@) refers to the instance
+    bottomInstanceAtt: {data: 'Bottom Instance Att'}
+    bottomInstanceMethod: ()-> 'Bottom Instance Method'
     id: null
     save: ()-> global[@constructor.name].storage[@id] = @
     destroy:()-> delete global[@constructor.name].storage[@id]
@@ -32,7 +44,6 @@ global.ORM = class ORM extends Mixin
 ###
 
 global.Animal = class Animal
-  ModelBase.mixinTo @
   ORM.mixinTo @
 
   # can now use get and set methods that were mixed in from ModelBase:
@@ -64,29 +75,85 @@ describe 'Mixin', ->
     done()
 
   it 'class method can be mixed into a class', (done)=> 
-    (expect Animal).itself.to.respondTo('count')
+    lion = new Animal('cat')
+    (expect lion).to.not.respondTo 'bottomClassMethod'
+
+    (expect Animal).itself.to.respondTo 'bottomClassMethod'
+    (expect Animal.bottomClassMethod()).to.equal 'Bottom Class Method'
+
     done()
 
   it 'class attribute can be mixed into a class', (done)=> 
-    (expect Animal.someData).to.exist
-    (expect Animal.someData.init).to.equal 'init'
+    lion = new Animal('cat')
+    (expect lion.bottomClassAtt).to.not.exist
+
+    (expect Animal.bottomClassAtt).to.exist
+    (expect Animal.bottomClassAtt.data).to.equal 'Bottom Class Att'
+
     done()
 
   it 'instance method can be mixed into a class', (done)=> 
     lion = new Animal('cat')
-    (expect Animal).itself.not.to.respondTo('save')
-    (expect lion).to.respondTo('save')
+    (expect lion).to.respondTo 'bottomInstanceMethod'
+    (expect lion.bottomInstanceMethod()).to.equal 'Bottom Instance Method'
+
+    (expect Animal).itself.not.to.respondTo 'bottomInstanceMethod'
     done()
 
   it 'instance attribute can be mixed into a class', (done)=> 
     lion = new Animal('cat')
+    (expect lion.bottomInstanceAtt).to.exist
+    (expect lion.bottomInstanceAtt.data).to.equal 'Bottom Instance Att'
     (expect lion.legs).to.equal 4
+
+    (expect Animal.bottomInstanceAtt).to.not.exist
     done()
 
   it 'instance attribute mixed into a class can be overriden', (done)=> 
     kang = new Kangaroo()
     (expect kang.legs).to.equal 2
     done()
+
+  it 'can include another mixin', (done)=> 
+    lion = new Animal('cat')
+    (expect lion).to.not.respondTo 'topClassMethod'
+    (expect lion).to.not.respondTo 'bottomClassMethod'
+
+    (expect lion.topClassAtt).to.not.exist
+    (expect lion.bottomClassAtt).to.not.exist
+
+    (expect lion).to.respondTo 'topInstanceMethod'
+    (expect lion.topInstanceMethod()).to.equal 'Top Instance Method'
+
+    (expect lion).to.respondTo 'bottomInstanceMethod'
+    (expect lion.bottomInstanceMethod()).to.equal 'Bottom Instance Method'
+
+    (expect lion.topInstanceAtt).to.exist
+    (expect lion.topInstanceAtt.data).to.equal 'Top Instance Att'
+
+    (expect lion.bottomInstanceAtt).to.exist
+    (expect lion.bottomInstanceAtt.data).to.equal 'Bottom Instance Att'
+
+    (expect Animal).itself.to.respondTo 'topClassMethod'
+    (expect Animal.topClassMethod()).to.equal 'Top Class Method'
+
+    (expect Animal).itself.to.respondTo 'bottomClassMethod'
+    (expect Animal.bottomClassMethod()).to.equal 'Bottom Class Method'
+
+    (expect Animal.topClassAtt).to.exist
+    (expect Animal.topClassAtt.data).to.equal 'Top Class Att'
+
+    (expect Animal.bottomClassAtt).to.exist
+    (expect Animal.bottomClassAtt.data).to.equal 'Bottom Class Att'
+
+    (expect Animal).itself.not.to.respondTo 'topInstanceMethod'
+    (expect Animal).itself.not.to.respondTo 'bottomInstanceMethod'
+
+    (expect Animal.topInstanceAtt).to.not.exist
+    (expect Animal.bottomInstanceAtt).to.not.exist
+
+    done()
+
 
   it 'instance methods work', (done)=> 
     kang = new Kangaroo()
