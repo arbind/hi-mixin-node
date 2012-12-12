@@ -5,10 +5,13 @@
   "version": "0.8.0",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "git@github.com:carbonfive/hi-mixin-node.git"
   },
   "keywords": [
-    "mixin"
+    "mixin",
+    "js",
+    "javascript",
+    "node"
   ],
   "private": false,
   "main": "./index",
@@ -24,7 +27,7 @@
   "devDependencies": {
     "coffee-script": "*",
     "mocha": "*",
-    "chai": "*",
+    "chai": "*"
    },
   "engines": {
     "node": ">=0.4.7",
