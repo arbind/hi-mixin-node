@@ -1,5 +1,5 @@
 ###
-#   Create some test mixins
+#   Create some test mixins that build on each other
 ###
 
 global.ModelBase = class ModelBase extends Mixin
@@ -40,11 +40,12 @@ global.ORM = class ORM extends Mixin
     destroy:()-> delete global[@constructor.name].storage[@id]
 
 ###
-#   Create a test class that uses the test mixins
+#   Create a test class that uses and configures the test mixins
 ###
 
+dbURL = 'redis://127.0.0.1:6379'
 global.Animal = class Animal
-  ORM.mixinTo @
+  ORM.mixinTo @, url: dbURL, a:1, b:'2'
 
   # can now use get and set methods that were mixed in from ModelBase:
   constructor: (@id)->
@@ -57,7 +58,6 @@ global.Kangaroo = class Kangaroo extends Animal
   legs: 2
 
 global.Fish = class Fish extends Animal
-  ModelBase.mixinTo @
   constructor: ()-> super ('fish')
   legs: 0
 
@@ -74,6 +74,23 @@ describe 'Mixin', ->
     (expect Mixin).to.exist
     done()
 
+  ###
+  #   configs
+  ###
+  it 'configs are available to the class', (done)=>
+    lion = new Animal('cat')
+    (expect lion.mixinConfig).to.not.exist
+
+    (expect Animal.mixinConfig.url).to.equal dbURL
+    (expect Animal.mixinConfig.a).to.equal 1
+    (expect Animal.mixinConfig.b).to.equal '2'
+
+    done()
+
+
+  ###
+  #   static methods and attributes
+  ###
   it 'class method can be mixed into a class', (done)=> 
     lion = new Animal('cat')
     (expect lion).to.not.respondTo 'bottomClassMethod'
@@ -92,6 +109,9 @@ describe 'Mixin', ->
 
     done()
 
+  ###
+  #   instance methods and attributes
+  ###
   it 'instance method can be mixed into a class', (done)=> 
     lion = new Animal('cat')
     (expect lion).to.respondTo 'bottomInstanceMethod'
@@ -114,6 +134,9 @@ describe 'Mixin', ->
     (expect kang.legs).to.equal 2
     done()
 
+  ###
+  #   include another mixin
+  ###
   it 'can include another mixin', (done)=> 
     lion = new Animal('cat')
     (expect lion).to.not.respondTo 'topClassMethod'
@@ -155,6 +178,9 @@ describe 'Mixin', ->
     done()
 
 
+  ###
+  #   functionality
+  ###
   it 'instance methods work', (done)=> 
     kang = new Kangaroo()
     kang.setName 'jumpie'
