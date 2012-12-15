@@ -2,7 +2,7 @@
   "name": "hi-mixin",
   "author": "Arbind Thakur <arbind@carbonfive.com>",
   "description": "Makes it easy to define mixins that can be added to your classes",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "repository": {
     "type": "git",
     "url": "git@github.com:carbonfive/hi-mixin-node.git"

@@ -14,6 +14,7 @@ global.ModelBase = class ModelBase extends Mixin
     atts: {}
     get: (field)-> @atts[field]
     set: (field, val)-> @atts[field] = val
+    getNumLegs: ()-> @legs
 
 global.ORM = class ORM extends Mixin
   @include ModelBase
@@ -133,6 +134,14 @@ describe 'Mixin', ->
     kang = new Kangaroo()
     (expect kang.legs).to.equal 2
     done()
+
+
+  it 'instance methods are bound to the prototype', (done)=>
+    lizard = new Animal()
+    fnNumLegs = lizard.getNumLegs
+    (expect fnNumLegs()).to.equal 4
+    done()
+
 
   ###
   #   include another mixin
